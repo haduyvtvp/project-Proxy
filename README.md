@@ -119,7 +119,7 @@ Secure Proxy dang chay tai cong 8888
 
 ```bash
 # Truy cập test server qua proxy (HTTP)
-curl -x http://localhost:8888 http://proxy-test-web/
+curl -x http://127.0.0.1:8888 http://proxy-test-web/
 
 # Kỳ vọng: "Secure Proxy test server is working!"
 ```
@@ -169,7 +169,7 @@ private final Set<String> danhSachChan = new HashSet<>(
 
 ```bash
 # Thử truy cập facebook.com qua proxy
-curl -x http://localhost:8888 http://www.facebook.com/
+curl -x http://127.0.0.1:8888 http://www.facebook.com/
 
 # Kỳ vọng: HTTP 403 - "Access denied by Secure Proxy"
 ```
@@ -178,7 +178,7 @@ curl -x http://localhost:8888 http://www.facebook.com/
 
 ```bash
 # Thử kết nối HTTPS qua proxy
-curl -x http://localhost:8888 https://example.com/
+curl -x http://127.0.0.1:8888 https://example.com/
 
 # Domain được phép → tunnel thành công
 ```

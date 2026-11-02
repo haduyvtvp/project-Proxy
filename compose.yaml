@@ -6,8 +6,30 @@ services:
     container_name: secure-proxy
     ports:
       - "8888:8888"
+    volumes:
+      - proxy-data:/data
     depends_on:
       - web
+
+  admin-api:
+    build:
+      context: ./admin-api
+    container_name: secure-proxy-admin
+    ports:
+      - "8080:8080"
+    volumes:
+      - proxy-data:/data
+    depends_on:
+      - proxy
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: secure-proxy-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - admin-api
 
   web:
     image: nginx:alpine
@@ -16,3 +38,6 @@ services:
       - "8081:80"
     volumes:
       - ./target/nginx.conf:/etc/nginx/conf.d/default.conf:ro
+
+volumes:
+  proxy-data:

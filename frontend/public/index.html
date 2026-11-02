@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Secure Proxy — Admin Dashboard</title>
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="https://unpkg.com/feather-icons/dist/feather.min.js"></script>
+</head>
+<body>
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <span class="logo-icon"><i data-feather="shield"></i></span>
+      <span class="logo-text">SecureProxy</span>
+    </div>
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-item active" data-tab="dashboard">
+        <i data-feather="grid"></i><span>Dashboard</span>
+      </a>
+      <a href="#" class="nav-item" data-tab="logs">
+        <i data-feather="list"></i><span>Access Logs</span>
+      </a>
+      <a href="#" class="nav-item" data-tab="blocklist">
+        <i data-feather="slash"></i><span>Blocklist</span>
+      </a>
+    </nav>
+    <div class="sidebar-footer">
+      <span class="status-dot" id="proxy-status-dot"></span>
+      <span id="proxy-status-text">Checking...</span>
+    </div>
+  </aside>
+
+  <!-- Mobile top bar -->
+  <header class="topbar">
+    <button class="menu-btn" id="menu-btn" aria-label="Menu">
+      <i data-feather="menu"></i>
+    </button>
+    <span class="topbar-title">SecureProxy Admin</span>
+  </header>
+
+  <!-- Main content -->
+  <main class="main-content">
+
+    <!-- ====== DASHBOARD TAB ====== -->
+    <section class="tab-pane active" id="tab-dashboard">
+      <div class="page-header">
+        <h1>Dashboard</h1>
+        <button class="btn btn-secondary" id="refresh-stats-btn">
+          <i data-feather="refresh-cw"></i> Refresh
+        </button>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon icon-total"><i data-feather="activity"></i></div>
+          <div class="stat-info">
+            <div class="stat-value" id="stat-total">—</div>
+            <div class="stat-label">Total Requests</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon icon-allowed"><i data-feather="check-circle"></i></div>
+          <div class="stat-info">
+            <div class="stat-value" id="stat-allowed">—</div>
+            <div class="stat-label">Allowed</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon icon-blocked"><i data-feather="x-circle"></i></div>
+          <div class="stat-info">
+            <div class="stat-value" id="stat-blocked">—</div>
+            <div class="stat-label">Blocked</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon icon-error"><i data-feather="alert-triangle"></i></div>
+          <div class="stat-info">
+            <div class="stat-value" id="stat-error">—</div>
+            <div class="stat-label">Errors</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card mt-24">
+        <div class="card-header">
+          <h2><i data-feather="bar-chart-2"></i> Top Blocked Domains</h2>
+        </div>
+        <div class="card-body" id="top-blocked-container">
+          <p class="empty-state">Loading…</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====== LOGS TAB ====== -->
+    <section class="tab-pane" id="tab-logs">
+      <div class="page-header">
+        <h1>Access Logs</h1>
+        <div class="header-actions">
+          <label class="toggle-label">
+            <input type="checkbox" id="auto-scroll-toggle" checked />
+            Auto-scroll
+          </label>
+          <span class="badge badge-sse" id="sse-badge">● Live</span>
+          <button class="btn btn-secondary" id="clear-logs-btn">
+            <i data-feather="trash-2"></i> Clear
+          </button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="log-table-wrapper" id="log-table-wrapper">
+          <table class="log-table">
+            <thead>
+              <tr>
+                <th>Timestamp</th>
+                <th>Client</th>
+                <th>Host</th>
+                <th>Method</th>
+                <th>Result</th>
+              </tr>
+            </thead>
+            <tbody id="log-tbody">
+              <tr><td colspan="5" class="empty-state">Waiting for logs…</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====== BLOCKLIST TAB ====== -->
+    <section class="tab-pane" id="tab-blocklist">
+      <div class="page-header">
+        <h1>Blocklist</h1>
+      </div>
+
+      <div class="card mb-24">
+        <div class="card-header">
+          <h2><i data-feather="plus-circle"></i> Add Domain</h2>
+        </div>
+        <div class="card-body">
+          <form class="add-domain-form" id="add-domain-form">
+            <input
+              type="text"
+              id="domain-input"
+              placeholder="e.g. facebook.com"
+              autocomplete="off"
+              spellcheck="false"
+            />
+            <button class="btn btn-primary" type="submit">
+              <i data-feather="plus"></i> Block
+            </button>
+          </form>
+          <p class="form-hint">Subdomains are automatically blocked too.</p>
+          <div id="blocklist-message" class="form-msg" style="display:none;"></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h2><i data-feather="slash"></i> Blocked Domains <span class="count-badge" id="blocklist-count">0</span></h2>
+          <input class="search-input" type="search" id="domain-search" placeholder="Search…" />
+        </div>
+        <div class="card-body no-pad" id="blocklist-container">
+          <p class="empty-state">Loading…</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Toast container -->
+  <div id="toast-container"></div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
