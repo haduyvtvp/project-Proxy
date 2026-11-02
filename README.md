@@ -123,8 +123,10 @@ curl -x http://127.0.0.1:8888 http://proxy-test-web/
 
 # Kỳ vọng: "Secure Proxy test server is working!"
 ```
+### 3. Chạy trình duyệt
+http://127.0.0.1:3000
 
-### 3. Dừng services
+### 4. Dừng services
 
 ```bash
 docker compose down
