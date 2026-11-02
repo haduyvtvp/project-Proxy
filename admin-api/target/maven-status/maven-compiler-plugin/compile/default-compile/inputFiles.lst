@@ -1,10 +1,19 @@
-E:\VSCode\Project-Proxy\project-Proxy\admin-api\src\main\java\vn\secureproxy\admin\model\Stats.java
-E:\VSCode\Project-Proxy\project-Proxy\admin-api\src\main\java\vn\secureproxy\admin\controller\LogController.java
-E:\VSCode\Project-Proxy\project-Proxy\admin-api\src\main\java\vn\secureproxy\admin\controller\BlocklistController.java
-E:\VSCode\Project-Proxy\project-Proxy\admin-api\src\main\java\vn\secureproxy\admin\service\BlocklistService.java
-E:\VSCode\Project-Proxy\project-Proxy\admin-api\src\main\java\vn\secureproxy\admin\AdminApplication.java
-E:\VSCode\Project-Proxy\project-Proxy\admin-api\src\main\java\vn\secureproxy\admin\controller\StatsController.java
-E:\VSCode\Project-Proxy\project-Proxy\admin-api\src\main\java\vn\secureproxy\admin\controller\StatusController.java
-E:\VSCode\Project-Proxy\project-Proxy\admin-api\src\main\java\vn\secureproxy\admin\model\LogEntry.java
-E:\VSCode\Project-Proxy\project-Proxy\admin-api\src\main\java\vn\secureproxy\admin\config\CorsConfig.java
-E:\VSCode\Project-Proxy\project-Proxy\admin-api\src\main\java\vn\secureproxy\admin\service\LogService.java
+D:\project Proxy\admin-api\src\main\java\vn\secureproxy\admin\websocket\LogWebSocketHandler.java
+D:\project Proxy\admin-api\src\main\java\vn\secureproxy\admin\config\CorsConfig.java
+D:\project Proxy\admin-api\src\main\java\vn\secureproxy\admin\model\PolicyDocument.java
+D:\project Proxy\admin-api\src\main\java\vn\secureproxy\admin\repository\LogRepository.java
+D:\project Proxy\admin-api\src\main\java\vn\secureproxy\admin\controller\MonitoringController.java
+D:\project Proxy\admin-api\src\main\java\vn\secureproxy\admin\controller\StatusController.java
+D:\project Proxy\admin-api\src\main\java\vn\secureproxy\admin\model\LogEntry.java
+D:\project Proxy\admin-api\src\main\java\vn\secureproxy\admin\controller\StatsController.java
+D:\project Proxy\admin-api\src\main\java\vn\secureproxy\admin\controller\PolicyController.java
+D:\project Proxy\admin-api\src\main\java\vn\secureproxy\admin\service\LogService.java
+D:\project Proxy\admin-api\src\main\java\vn\secureproxy\admin\controller\BlocklistController.java
+D:\project Proxy\admin-api\src\main\java\vn\secureproxy\admin\controller\LogController.java
+D:\project Proxy\admin-api\src\main\java\vn\secureproxy\admin\AdminApplication.java
+D:\project Proxy\admin-api\src\main\java\vn\secureproxy\admin\model\MonitoringSnapshot.java
+D:\project Proxy\admin-api\src\main\java\vn\secureproxy\admin\config\WebSocketConfig.java
+D:\project Proxy\admin-api\src\main\java\vn\secureproxy\admin\model\Stats.java
+D:\project Proxy\admin-api\src\main\java\vn\secureproxy\admin\service\BlocklistService.java
+D:\project Proxy\admin-api\src\main\java\vn\secureproxy\admin\model\LogPage.java
+D:\project Proxy\admin-api\src\main\java\vn\secureproxy\admin\service\PolicyManagementService.java

@@ -2,11 +2,16 @@ package vn.secureproxy.admin.service;
 
 import org.springframework.stereotype.Service;
 import vn.secureproxy.admin.model.LogEntry;
+import vn.secureproxy.admin.model.LogPage;
+import vn.secureproxy.admin.model.MonitoringSnapshot;
+import vn.secureproxy.admin.repository.LogRepository;
 
 import java.io.*;
 import java.nio.file.*;
+import java.time.LocalDateTime;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.function.Consumer;
 import java.util.regex.*;
 
 @Service
@@ -14,23 +19,28 @@ public class LogService {
 
     private static final String LOG_FILE = "/data/access.log";
     private static final int BUFFER_SIZE = 1000;
-    private static final Pattern LOG_PATTERN = Pattern.compile(
+        private static final Pattern LOG_PATTERN = Pattern.compile(
             "\\[(\\d{4}-\\d{2}-\\d{2} \\d{2}:\\d{2}:\\d{2})\\]" +
             " Client=([^ ]+)" +
             " Host=([^ ]+)" +
             " Method=([^ ]+)" +
-            " Result=(.+)"
+            " Result=([^ ]+)" +
+            "(?: Reason=([^ ]+))?" +
+            ".*"
     );
 
     // Circular buffer for in-memory log entries
     private final Deque<LogEntry> buffer = new ArrayDeque<>(BUFFER_SIZE);
 
-    // SSE subscribers
-    private final List<BlockingQueue<LogEntry>> subscribers = new CopyOnWriteArrayList<>();
+    private final List<Consumer<LogEntry>> subscribers = new CopyOnWriteArrayList<>();
+    private final LogRepository logRepository;
 
-    public LogService() {
+    public LogService(LogRepository logRepository) {
+        this.logRepository = logRepository;
+        File logFile = new File(LOG_FILE);
+        long initialLogLength = logFile.exists() ? logFile.length() : 0;
         loadExistingLogs();
-        startTailThread();
+        startTailThread(initialLogLength);
     }
 
     private void loadExistingLogs() {
@@ -38,16 +48,25 @@ public class LogService {
         if (!logFile.exists()) return;
         try (BufferedReader reader = new BufferedReader(new FileReader(logFile))) {
             String line;
+            List<LogEntry> batch = new ArrayList<>(500);
             while ((line = reader.readLine()) != null) {
                 LogEntry entry = parseLine(line);
-                if (entry != null) addToBuffer(entry);
+                if (entry != null) {
+                    addToBuffer(entry);
+                    batch.add(entry);
+                    if (batch.size() == 500) {
+                        logRepository.saveAll(batch);
+                        batch.clear();
+                    }
+                }
             }
+            logRepository.saveAll(batch);
         } catch (IOException e) {
             System.err.println("[LogService] Failed to load existing logs: " + e.getMessage());
         }
     }
 
-    private void startTailThread() {
+    private void startTailThread(long initialLogLength) {
         Thread tailThread = new Thread(() -> {
             File logFile = new File(LOG_FILE);
             // Wait until file appears
@@ -55,8 +74,7 @@ public class LogService {
                 try { Thread.sleep(2000); } catch (InterruptedException ie) { return; }
             }
             try (RandomAccessFile raf = new RandomAccessFile(logFile, "r")) {
-                // Seek to end of existing content
-                raf.seek(raf.length());
+                raf.seek(Math.min(initialLogLength, raf.length()));
                 while (!Thread.currentThread().isInterrupted()) {
                     String line = raf.readLine();
                     if (line == null) {
@@ -68,6 +86,7 @@ public class LogService {
                     } else {
                         LogEntry entry = parseLine(line);
                         if (entry != null) {
+                            logRepository.save(entry);
                             addToBuffer(entry);
                             broadcastToSubscribers(entry);
                         }
@@ -89,29 +108,44 @@ public class LogService {
     }
 
     private void broadcastToSubscribers(LogEntry entry) {
-        for (BlockingQueue<LogEntry> queue : subscribers) {
-            queue.offer(entry);
+        for (Consumer<LogEntry> subscriber : subscribers) {
+            subscriber.accept(entry);
         }
     }
 
     public synchronized List<LogEntry> getRecentLogs(int limit) {
-        List<LogEntry> list = new ArrayList<>(buffer);
-        int fromIndex = Math.max(0, list.size() - limit);
-        return list.subList(fromIndex, list.size());
+        return logRepository.findRecent(limit);
     }
 
-    public synchronized List<LogEntry> getAllLogs() {
-        return new ArrayList<>(buffer);
+    public List<LogEntry> getAllLogs() {
+        return logRepository.findAll();
     }
 
-    public BlockingQueue<LogEntry> subscribe() {
-        BlockingQueue<LogEntry> queue = new LinkedBlockingQueue<>();
-        subscribers.add(queue);
-        return queue;
+    public MonitoringSnapshot getMonitoring(
+            LocalDateTime from,
+            LocalDateTime to,
+            int bucketMinutes
+    ) {
+        return logRepository.findMonitoring(from, to, bucketMinutes);
     }
 
-    public void unsubscribe(BlockingQueue<LogEntry> queue) {
-        subscribers.remove(queue);
+    public LogPage searchLogs(
+            LocalDateTime from,
+            LocalDateTime to,
+            String client,
+            String host,
+            int page,
+            int size
+    ) {
+        return logRepository.findFiltered(from, to, client, host, page, size);
+    }
+
+    public void subscribe(Consumer<LogEntry> subscriber) {
+        subscribers.add(subscriber);
+    }
+
+    public void unsubscribe(Consumer<LogEntry> subscriber) {
+        subscribers.remove(subscriber);
     }
 
     public static LogEntry parseLine(String line) {
@@ -123,7 +157,8 @@ public class LogService {
                 m.group(2),
                 m.group(3),
                 m.group(4),
-                m.group(5).trim(),
+                m.group(5),
+                m.group(6),
                 line.trim()
         );
     }

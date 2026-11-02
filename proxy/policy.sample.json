@@ -1,0 +1,44 @@
+{
+  "mode": "BLOCKLIST",
+  "timezone": "Asia/Ho_Chi_Minh",
+  "allow": [],
+  "categories": [
+    {
+      "id": "social",
+      "name": "Mang xa hoi",
+      "enabled": true,
+      "patterns": ["facebook.com", "*.fbcdn.net", "instagram.com", "tiktok.com", "*.tiktokcdn.com", "twitter.com", "x.com"],
+      "schedule": []
+    },
+    {
+      "id": "streaming",
+      "name": "Streaming",
+      "enabled": true,
+      "patterns": ["netflix.com", "*.nflxvideo.net", "twitch.tv"],
+      "schedule": []
+    },
+    {
+      "id": "gambling",
+      "name": "Ca cuoc",
+      "enabled": true,
+      "patterns": ["bet365.com", "1xbet.com", "fun88.com"],
+      "schedule": []
+    },
+    {
+      "id": "game",
+      "name": "Game",
+      "enabled": false,
+      "patterns": ["roblox.com", "steampowered.com", "epicgames.com", "garena.vn", "leagueoflegends.com"],
+      "schedule": [
+        {"days": ["MON", "TUE", "WED", "THU", "FRI"], "from": "07:30", "to": "17:00"}
+      ]
+    },
+    {
+      "id": "news",
+      "name": "Tin tuc",
+      "enabled": false,
+      "patterns": ["vnexpress.net", "tuoitre.vn", "dantri.com.vn", "thanhnien.vn"],
+      "schedule": []
+    }
+  ]
+}

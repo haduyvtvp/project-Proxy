@@ -6,16 +6,23 @@ public class LogEntry {
     private String host;
     private String method;
     private String result;
+    private String reason;
     private String raw;
 
     public LogEntry() {}
 
     public LogEntry(String timestamp, String client, String host, String method, String result, String raw) {
+        this(timestamp, client, host, method, result, null, raw);
+    }
+
+    public LogEntry(String timestamp, String client, String host, String method,
+                    String result, String reason, String raw) {
         this.timestamp = timestamp;
         this.client = client;
         this.host = host;
         this.method = method;
         this.result = result;
+        this.reason = reason;
         this.raw = raw;
     }
 
@@ -35,6 +42,9 @@ public class LogEntry {
 
     public String getResult() { return result; }
     public void setResult(String result) { this.result = result; }
+
+    public String getReason() { return reason; }
+    public void setReason(String reason) { this.reason = reason; }
 
     public String getRaw() { return raw; }
     public void setRaw(String raw) { this.raw = raw; }

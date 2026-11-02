@@ -10,19 +10,39 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.http.*;
 
 import java.net.URI;
+import java.net.InetSocketAddress;
 import java.nio.charset.StandardCharsets;
+import vn.secureproxy.policy.Decision;
+import vn.secureproxy.policy.PolicyStore;
+import vn.secureproxy.security.ProxySecurity;
 
 public class ProxyHandler extends ChannelInboundHandlerAdapter {
+
+    private final ProxySecurity proxySecurity;
 
     private static final NioEventLoopGroup CLIENT_GROUP =
             new NioEventLoopGroup();
 
-    private final PolicyService policy = new PolicyService();
+    public ProxyHandler(ProxySecurity proxySecurity) {
+        this.proxySecurity = proxySecurity;
+    }
 
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) {
         if (!(msg instanceof FullHttpRequest request)) {
             io.netty.util.ReferenceCountUtil.release(msg);
+            return;
+        }
+
+        if (!proxySecurity.isTrusted(ctx.channel().remoteAddress())) {
+            io.netty.util.ReferenceCountUtil.release(msg);
+            ctx.close();
+            return;
+        }
+        if (!proxySecurity.allowRequest(ctx.channel().remoteAddress())) {
+            io.netty.util.ReferenceCountUtil.release(msg);
+            reply(ctx, HttpResponseStatus.TOO_MANY_REQUESTS,
+                    "Proxy request rate limit exceeded");
             return;
         }
 
@@ -47,16 +67,12 @@ public class ProxyHandler extends ChannelInboundHandlerAdapter {
                 }
             }
 
-            if (host == null || host.isBlank()) {
-                reply(ctx, HttpResponseStatus.BAD_REQUEST,
-                        "Invalid destination");
-                return;
-            }
+                        Decision decision = PolicyStore.shared().current().danhGia(host);
 
-            if (!policy.choPhep(host)) {
+            if (!decision.allowed()) {
                 AccessLog.ghiLog(
                         String.valueOf(ctx.channel().remoteAddress()),
-                        host, method, "BLOCKED");
+                        host, method, "BLOCKED", decision.reason());
 
                 reply(ctx, HttpResponseStatus.FORBIDDEN,
                         "Access denied by Secure Proxy");
@@ -83,14 +99,14 @@ public class ProxyHandler extends ChannelInboundHandlerAdapter {
 
             outbound.headers().set(request.headers());
             outbound.headers().set(HttpHeaderNames.HOST, destination);
-            outbound.headers().remove(HttpHeaderNames.PROXY_CONNECTION);
+            outbound.headers().remove("Proxy-Connection");
             outbound.headers().setInt(
                     HttpHeaderNames.CONTENT_LENGTH,
                     outbound.content().readableBytes());
 
-            AccessLog.ghiLog(
+                        AccessLog.ghiLog(
                     String.valueOf(ctx.channel().remoteAddress()),
-                    destination, method, "ALLOWED");
+                    destination, method, "ALLOWED", decision.reason());
 
             Bootstrap bootstrap = new Bootstrap();
             bootstrap.group(CLIENT_GROUP)
@@ -208,10 +224,12 @@ public class ProxyHandler extends ChannelInboundHandlerAdapter {
             return;
         }
 
-        if (!policy.choPhep(host)) {
+           Decision decision = PolicyStore.shared().current().danhGia(host);
+
+        if (!decision.allowed()) {
             AccessLog.ghiLog(
                     String.valueOf(ctx.channel().remoteAddress()),
-                    host, "CONNECT", "BLOCKED");
+                    host, "CONNECT", "BLOCKED", decision.reason());
 
             reply(ctx, HttpResponseStatus.FORBIDDEN,
                     "Access denied by Secure Proxy");
@@ -276,9 +294,9 @@ public class ProxyHandler extends ChannelInboundHandlerAdapter {
                             return;
                         }
 
-                        AccessLog.ghiLog(
+                                               AccessLog.ghiLog(
                                 String.valueOf(ctx.channel().remoteAddress()),
-                                destination, "CONNECT", "ALLOWED");
+                                destination, "CONNECT", "ALLOWED", decision.reason());
 
                         ChannelPipeline clientPipeline = ctx.pipeline();
 

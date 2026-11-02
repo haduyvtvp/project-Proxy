@@ -1,33 +1,59 @@
-
 services:
   proxy:
     build:
       context: ./proxy
     container_name: secure-proxy
     ports:
-      - "8888:8888"
+      - "${PROXY_HOST_BIND:-127.0.0.1}:8888:8888"
+    environment:
+      PROXY_ALLOWED_CIDRS: ${PROXY_ALLOWED_CIDRS:-127.0.0.0/8,::1/128,10.0.0.0/8,172.16.0.0/12,192.168.0.0/16,fc00::/7}
+      PROXY_RATE_LIMIT_PER_MINUTE: ${PROXY_RATE_LIMIT_PER_MINUTE:-120}
+      PROXY_RATE_LIMIT_BURST: ${PROXY_RATE_LIMIT_BURST:-30}
     volumes:
       - proxy-data:/data
     depends_on:
       - web
+
+  db:
+    image: postgres:16-alpine
+    container_name: secure-proxy-db
+    environment:
+      POSTGRES_DB: secureproxy
+      POSTGRES_USER: secureproxy
+      POSTGRES_PASSWORD: secureproxy_pass
+    volumes:
+      - pg-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U secureproxy -d secureproxy"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
 
   admin-api:
     build:
       context: ./admin-api
     container_name: secure-proxy-admin
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/secureproxy
+      SPRING_DATASOURCE_USERNAME: secureproxy
+      SPRING_DATASOURCE_PASSWORD: secureproxy_pass
+      SPRING_SQL_INIT_MODE: always
     volumes:
       - proxy-data:/data
     depends_on:
-      - proxy
+      db:
+        condition: service_healthy
+      proxy:
+        condition: service_started
 
   frontend:
     build:
       context: ./frontend
     container_name: secure-proxy-frontend
     ports:
-      - "3000:80"
+      - "127.0.0.1:3000:80"
     depends_on:
       - admin-api
 
@@ -41,3 +67,4 @@ services:
 
 volumes:
   proxy-data:
+  pg-data:

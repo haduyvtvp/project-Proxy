@@ -1,11 +1,11 @@
+vn\secureproxy\admin\model\LogEntry.class
+vn\secureproxy\admin\AdminApplication.class
+vn\secureproxy\admin\controller\StatsController.class
+vn\secureproxy\admin\service\BlocklistService.class
 vn\secureproxy\admin\controller\LogController.class
+vn\secureproxy\admin\model\Stats$DomainCount.class
+vn\secureproxy\admin\model\Stats.class
 vn\secureproxy\admin\config\CorsConfig.class
 vn\secureproxy\admin\controller\StatusController.class
 vn\secureproxy\admin\service\LogService.class
 vn\secureproxy\admin\controller\BlocklistController.class
-vn\secureproxy\admin\AdminApplication.class
-vn\secureproxy\admin\model\Stats$DomainCount.class
-vn\secureproxy\admin\controller\StatsController.class
-vn\secureproxy\admin\model\LogEntry.class
-vn\secureproxy\admin\service\BlocklistService.class
-vn\secureproxy\admin\model\Stats.class
